@@ -15,6 +15,9 @@ import HrOverview from "@/components/dashboard/HrOverview";
 import SupplyStatus from "@/components/dashboard/SupplyStatus";
 import AlertsFeed from "@/components/dashboard/AlertsFeed";
 import { kpiData } from "@/data/mockData";
+import { useGoogleSheets } from "@/hooks/useGoogleSheets";
+import { toast } from "sonner";
+import { useEffect, useRef } from "react";
 
 const formatMoney = (v: number) => {
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)} млн`;
@@ -23,10 +26,45 @@ const formatMoney = (v: number) => {
 };
 
 const Index = () => {
+  const { data: sheetsData, isLoading, isFetching, refresh, isError } = useGoogleSheets();
+  const prevFetchedAt = useRef<Date | null>(null);
+
+  useEffect(() => {
+    if (sheetsData && sheetsData.fetchedAt !== prevFetchedAt.current) {
+      prevFetchedAt.current = sheetsData.fetchedAt;
+      const prorabCount = sheetsData.prorab.length;
+      const supplyCount = sheetsData.supply.length;
+      toast.success(`Данные обновлены: прораб — ${prorabCount} записей, поставки — ${supplyCount}`);
+    }
+  }, [sheetsData]);
+
+  useEffect(() => {
+    if (isError) {
+      toast.error("Не удалось загрузить данные из Google Sheets");
+    }
+  }, [isError]);
+
+  // Compute KPI overrides from real data
+  const workersOnSite = sheetsData && sheetsData.prorab.length > 0
+    ? sheetsData.prorab.reduce((sum, r) => sum + r.workerCount, 0)
+    : kpiData.workersOnSite;
+
+  const overallProgress = sheetsData && sheetsData.prorab.length > 0
+    ? Math.round(sheetsData.prorab.reduce((sum, r) => sum + r.progress, 0) / sheetsData.prorab.length)
+    : kpiData.overallProgress;
+
+  const incidentCount = sheetsData && sheetsData.prorab.length > 0
+    ? sheetsData.prorab.filter((r) => r.issues && r.issues.trim() !== "").length
+    : kpiData.safetyIncidents;
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-[1440px] space-y-6">
-        <DashboardHeader />
+        <DashboardHeader
+          onRefresh={refresh}
+          isRefreshing={isFetching}
+          lastUpdated={sheetsData?.fetchedAt ?? null}
+        />
 
         {/* KPI Row */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
@@ -46,14 +84,14 @@ const Index = () => {
           />
           <KpiCard
             title="На объекте"
-            value={`${kpiData.workersOnSite}`}
+            value={`${workersOnSite}`}
             subtitle={`из ${kpiData.workersTotal} чел.`}
             icon={<Users className="h-5 w-5" />}
             trend={{ value: "91%", direction: "up" }}
           />
           <KpiCard
             title="Общий прогресс"
-            value={`${kpiData.overallProgress}%`}
+            value={`${overallProgress}%`}
             subtitle="фундамент"
             icon={<TrendingUp className="h-5 w-5" />}
             trend={{ value: "+2.3%", direction: "up" }}
@@ -67,7 +105,7 @@ const Index = () => {
           />
           <KpiCard
             title="Инциденты ОТ"
-            value={`${kpiData.safetyIncidents}`}
+            value={`${incidentCount}`}
             subtitle="за месяц"
             icon={<Shield className="h-5 w-5" />}
             trend={{ value: "−1", direction: "down" }}
@@ -77,9 +115,9 @@ const Index = () => {
         {/* Section Progress + Alerts */}
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <SectionProgress />
+            <SectionProgress prorabData={sheetsData?.prorab} />
           </div>
-          <AlertsFeed />
+          <AlertsFeed prorabData={sheetsData?.prorab} />
         </div>
 
         {/* Finance Row */}
@@ -93,13 +131,15 @@ const Index = () => {
         {/* HR + Supply */}
         <div className="grid gap-4 lg:grid-cols-2">
           <HrOverview />
-          <SupplyStatus />
+          <SupplyStatus supplyRows={sheetsData?.supply} />
         </div>
 
         {/* Footer */}
         <footer className="flex items-center justify-between border-t border-border pt-4 text-xs text-muted-foreground">
-          <span>Источники: Прораб · Снабжение · HR · Финансы</span>
-          <span className="font-mono">Google Sheets → Dashboard</span>
+          <span>Источники: Google Sheets (Прораб · Снабжение) + Mock (HR · Финансы)</span>
+          <span className="font-mono">
+            {isLoading ? "Загрузка..." : sheetsData ? "Google Sheets → Dashboard ✓" : "Mock data"}
+          </span>
         </footer>
       </div>
     </div>
