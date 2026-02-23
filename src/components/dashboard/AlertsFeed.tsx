@@ -1,4 +1,5 @@
-import { alerts } from "@/data/mockData";
+import { alerts as mockAlerts } from "@/data/mockData";
+import { ProrabRow } from "@/lib/googleSheets";
 import { AlertTriangle, AlertCircle, Info, CheckCircle2 } from "lucide-react";
 
 const iconMap = {
@@ -15,10 +16,30 @@ const colorMap = {
   success: "text-success border-success/20 bg-success/5",
 };
 
-const AlertsFeed = () => {
+interface AlertsFeedProps {
+  prorabData?: ProrabRow[];
+}
+
+const AlertsFeed = ({ prorabData }: AlertsFeedProps) => {
+  // Generate alerts from real prоrab data (issues column) + fallback to mock
+  const realAlerts = prorabData
+    ?.filter((r) => r.issues && r.issues.trim() !== "")
+    .map((r) => ({
+      type: "danger" as const,
+      text: `${r.section || "Объект"}: ${r.issues}`,
+      time: r.date || "",
+    })) ?? [];
+
+  const alerts = realAlerts.length > 0 ? realAlerts : mockAlerts;
+
   return (
     <div className="chart-container">
-      <h3 className="section-title mb-4">Уведомления</h3>
+      <h3 className="section-title mb-4">
+        Уведомления
+        {realAlerts.length > 0 && (
+          <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-success" title="Данные из Google Sheets" />
+        )}
+      </h3>
       <div className="space-y-2">
         {alerts.map((alert, i) => {
           const Icon = iconMap[alert.type];
@@ -35,6 +56,9 @@ const AlertsFeed = () => {
             </div>
           );
         })}
+        {alerts.length === 0 && (
+          <p className="text-sm text-muted-foreground py-4 text-center">Нет уведомлений</p>
+        )}
       </div>
     </div>
   );
