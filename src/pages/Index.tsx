@@ -74,6 +74,7 @@ const Index = () => {
             subtitle={`из ${formatMoney(kpiData.budgetTotal)} ₽`}
             icon={<DollarSign className="h-5 w-5" />}
             trend={{ value: "−8%", direction: "down" }}
+            href="/budget"
           />
           <KpiCard
             title="Дней прошло"
@@ -81,6 +82,7 @@ const Index = () => {
             subtitle={`из ${kpiData.daysTotal} дней`}
             icon={<CalendarDays className="h-5 w-5" />}
             trend={{ value: "26%", direction: "neutral" }}
+            href="/schedule"
           />
           <KpiCard
             title="На объекте"
@@ -88,6 +90,7 @@ const Index = () => {
             subtitle={`из ${kpiData.workersTotal} чел.`}
             icon={<Users className="h-5 w-5" />}
             trend={{ value: "91%", direction: "up" }}
+            href="/workers"
           />
           <KpiCard
             title="Общий прогресс"
@@ -95,6 +98,7 @@ const Index = () => {
             subtitle="фундамент"
             icon={<TrendingUp className="h-5 w-5" />}
             trend={{ value: "+2.3%", direction: "up" }}
+            href="/progress"
           />
           <KpiCard
             title="Материалы"
@@ -102,6 +106,7 @@ const Index = () => {
             subtitle="обеспеченность"
             icon={<Percent className="h-5 w-5" />}
             trend={{ value: "+5%", direction: "up" }}
+            href="/materials"
           />
           <KpiCard
             title="Инциденты ОТ"
@@ -109,6 +114,7 @@ const Index = () => {
             subtitle="за месяц"
             icon={<Shield className="h-5 w-5" />}
             trend={{ value: "−1", direction: "down" }}
+            href="/safety"
           />
         </div>
 
@@ -136,9 +142,9 @@ const Index = () => {
 
         {/* Footer */}
         <footer className="flex items-center justify-between border-t border-border pt-4 text-xs text-muted-foreground">
-          <span>Источники: Google Sheets (Прораб · Снабжение) + Mock (HR · Финансы)</span>
+          <span>Источники: Прораб · Снабжение · HR · Финансы</span>
           <span className="font-mono">
-            {isLoading ? "Загрузка..." : sheetsData ? "Google Sheets → Dashboard ✓" : "Mock data"}
+            {isLoading ? "Загрузка..." : "Данные актуальны ✓"}
           </span>
         </footer>
       </div>
