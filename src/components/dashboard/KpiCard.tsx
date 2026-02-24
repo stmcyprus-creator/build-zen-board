@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface KpiCardProps {
@@ -8,11 +9,18 @@ interface KpiCardProps {
   icon: ReactNode;
   trend?: { value: string; direction: "up" | "down" | "neutral" };
   accentColor?: string;
+  href?: string;
 }
 
-const KpiCard = ({ title, value, subtitle, icon, trend }: KpiCardProps) => {
+const KpiCard = ({ title, value, subtitle, icon, trend, href }: KpiCardProps) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="kpi-card">
+    <div
+      className={`kpi-card ${href ? "cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all" : ""}`}
+      onClick={href ? () => navigate(href) : undefined}
+      role={href ? "link" : undefined}
+    >
       <div className="flex items-start justify-between">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
           {icon}
