@@ -36,7 +36,7 @@ const SupplyStatus = ({ supplyRows }: SupplyStatusProps) => {
           <Package className="h-3.5 w-3.5" />
           <span>{items.length} позиций</span>
           {hasRealData && (
-            <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-success" title="Данные из Google Sheets" />
+            <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-success" title="Данные обновлены" />
           )}
         </div>
       </div>
@@ -60,7 +60,7 @@ const SupplyStatus = ({ supplyRows }: SupplyStatusProps) => {
       {hasRealData && (
         <div className="mb-4 rounded-lg bg-secondary/50 p-3 text-center">
           <p className="font-mono text-2xl font-bold text-primary">{items.length}</p>
-          <p className="text-[10px] text-muted-foreground">Поставок из Google Sheets</p>
+          <p className="text-[10px] text-muted-foreground">Поставок загружено</p>
         </div>
       )}
 
