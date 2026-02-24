@@ -1,36 +1,42 @@
 import { ProrabRow } from "@/lib/googleSheets";
 import { sectionProgress as mockSectionProgress } from "@/data/mockData";
+import { workSchedule, getScheduleStatus, matchWorkType } from "@/data/scheduleData";
 
 interface SectionProgressProps {
   prorabData?: ProrabRow[];
 }
 
 const SectionProgress = ({ prorabData }: SectionProgressProps) => {
-  // If we have real data from Sheets, aggregate by section
+  // If we have real data from Sheets, aggregate by schedule work types
   const sections = prorabData && prorabData.length > 0
-    ? aggregateSections(prorabData)
-    : mockSectionProgress;
+    ? aggregateBySchedule(prorabData)
+    : getDefaultFromSchedule();
 
   return (
     <div className="chart-container">
-      <h3 className="section-title mb-4">Прогресс по секциям</h3>
+      <h3 className="section-title mb-4">Прогресс по направлениям работ</h3>
       {sections.length === 0 ? (
         <p className="text-sm text-muted-foreground py-8 text-center">
-          Нет данных. Заполните таблицу прораба в Google Sheets.
+          Нет данных. Заполните таблицу прораба.
         </p>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {sections.map((section) => (
-            <div key={section.id} className="space-y-3">
+            <div key={section.id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold">{section.name}</span>
+                  <span className="text-sm font-semibold">{section.name}</span>
                   <span
-                    className={`status-dot ${
-                      section.status === "on_track"
-                        ? "status-dot-success"
-                        : "status-dot-warning"
+                    className={`inline-block h-2 w-2 rounded-full ${
+                      section.status === "active"
+                        ? "bg-primary"
+                        : section.status === "completed"
+                        ? "bg-success"
+                        : section.status === "overdue"
+                        ? "bg-destructive"
+                        : "bg-muted-foreground/40"
                     }`}
+                    title={section.statusLabel}
                   />
                 </div>
                 <span className="font-mono text-sm font-semibold text-primary">
@@ -43,32 +49,9 @@ const SectionProgress = ({ prorabData }: SectionProgressProps) => {
                   style={{ width: `${section.progress}%` }}
                 />
               </div>
-              <div className="space-y-2">
-                {section.tasks.map((task) => (
-                  <div key={task.name} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{task.name}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-20 rounded-full bg-secondary overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${task.progress}%`,
-                            backgroundColor:
-                              task.progress === 100
-                                ? "hsl(var(--success))"
-                                : task.progress > 0
-                                ? "hsl(var(--primary))"
-                                : "hsl(var(--muted))",
-                          }}
-                        />
-                      </div>
-                      <span className="w-8 text-right font-mono text-xs">
-                        {task.progress}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {section.period} · {section.statusLabel}
+              </p>
             </div>
           ))}
         </div>
@@ -77,37 +60,52 @@ const SectionProgress = ({ prorabData }: SectionProgressProps) => {
   );
 };
 
-/** Aggregate flat prоrab rows into section progress structure */
-function aggregateSections(rows: ProrabRow[]) {
-  const sectionMap = new Map<string, { tasks: Map<string, number[]>; totalProgress: number[] }>();
+const STATUS_LABELS: Record<string, string> = {
+  upcoming: "Предстоит",
+  active: "В работе",
+  completed: "Завершено",
+  overdue: "Просрочено",
+};
+
+function getDefaultFromSchedule() {
+  return workSchedule.map((item) => {
+    const status = getScheduleStatus(item);
+    return {
+      id: item.id,
+      name: item.name,
+      progress: item.progress,
+      status,
+      statusLabel: STATUS_LABELS[status],
+      period: `${item.plannedStart} — ${item.plannedEnd}`,
+    };
+  });
+}
+
+function aggregateBySchedule(rows: ProrabRow[]) {
+  const progressMap = new Map<string, number[]>();
 
   for (const row of rows) {
-    const sectionKey = row.section || "Без секции";
-    if (!sectionMap.has(sectionKey)) {
-      sectionMap.set(sectionKey, { tasks: new Map(), totalProgress: [] });
+    const matched = matchWorkType(row.workType || row.description || "");
+    if (matched) {
+      if (!progressMap.has(matched.id)) progressMap.set(matched.id, []);
+      progressMap.get(matched.id)!.push(row.progress);
     }
-    const sec = sectionMap.get(sectionKey)!;
-    const taskKey = row.workType || row.description || "Работы";
-    if (!sec.tasks.has(taskKey)) {
-      sec.tasks.set(taskKey, []);
-    }
-    sec.tasks.get(taskKey)!.push(row.progress);
-    sec.totalProgress.push(row.progress);
   }
 
-  return Array.from(sectionMap.entries()).map(([key, sec]) => {
-    const avgProgress = Math.round(
-      sec.totalProgress.reduce((a, b) => a + b, 0) / sec.totalProgress.length
-    );
+  return workSchedule.map((item) => {
+    const values = progressMap.get(item.id);
+    const progress = values && values.length > 0
+      ? Math.round(values.reduce((a, b) => a + b, 0) / values.length)
+      : item.progress;
+    const updated = { ...item, progress };
+    const status = getScheduleStatus(updated);
     return {
-      id: key,
-      name: key.startsWith("Секция") ? key : `Секция ${key}`,
-      progress: avgProgress,
-      status: (avgProgress >= 15 ? "on_track" : "delayed") as "on_track" | "delayed",
-      tasks: Array.from(sec.tasks.entries()).map(([name, progresses]) => ({
-        name,
-        progress: Math.round(progresses.reduce((a, b) => a + b, 0) / progresses.length),
-      })),
+      id: item.id,
+      name: item.name,
+      progress,
+      status,
+      statusLabel: STATUS_LABELS[status],
+      period: `${item.plannedStart} — ${item.plannedEnd}`,
     };
   });
 }
