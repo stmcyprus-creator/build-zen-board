@@ -2,7 +2,7 @@
 // Object: Residential building 17,000 m², 2 sections (A, B), foundation stage
 
 export const projectInfo = {
-  name: "ул. Музыка",
+  name: "ЖК Рассвет",
   address: "ул. Музыки",
   totalArea: 17000,
   sections: ["А", "Б"],
