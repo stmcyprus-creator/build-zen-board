@@ -1,10 +1,12 @@
 import { ArrowLeft, ClipboardList, Calendar, User, MapPin, Layers, AlertTriangle, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleSheets } from "@/hooks/useGoogleSheets";
+import { useRole } from "@/contexts/RoleContext";
 
 const ForemanReport = () => {
   const navigate = useNavigate();
   const { data: sheetsData, isLoading } = useGoogleSheets();
+  const { canAccess } = useRole();
 
   const rows = sheetsData?.prorab ?? [];
 
@@ -13,12 +15,14 @@ const ForemanReport = () => {
       <div className="mx-auto max-w-[1200px] space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary/50 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
+          {canAccess("/") && (
+            <button
+              onClick={() => navigate("/")}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary/50 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+          )}
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <ClipboardList className="h-5 w-5" />
