@@ -2,14 +2,14 @@
 // Object: Residential building 17,000 m², 2 sections (A, B), foundation stage
 
 export const projectInfo = {
-  name: "ЖК «Рассвет»",
-  address: "ул. Строителей, 24",
+  name: "ул. Музыка",
+  address: "ул. Музыки",
   totalArea: 17000,
   sections: ["А", "Б"],
-  stage: "Фундамент",
-  startDate: "2025-09-01",
-  plannedEnd: "2027-06-30",
-  currentDate: "2026-02-23",
+  stage: "Монолитные работы ниже 0.0",
+  startDate: "2026-01-01",
+  plannedEnd: "2027-08-31",
+  currentDate: "2026-02-24",
 };
 
 export const kpiData = {

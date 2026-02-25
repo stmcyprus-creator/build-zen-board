@@ -1,5 +1,6 @@
 import { Building2, Calendar, HardHat, Clock, RefreshCw } from "lucide-react";
 import { projectInfo } from "@/data/mockData";
+import RoleSwitcher from "@/components/RoleSwitcher";
 
 interface DashboardHeaderProps {
   onRefresh?: () => void;
@@ -34,7 +35,8 @@ const DashboardHeader = ({ onRefresh, isRefreshing, lastUpdated }: DashboardHead
         </div>
       </div>
 
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        <RoleSwitcher />
         <div className="flex items-center gap-2">
           <HardHat className="h-4 w-4 text-primary" />
           <span>Стадия: <span className="font-semibold text-foreground">{projectInfo.stage}</span></span>
