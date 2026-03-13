@@ -1,6 +1,9 @@
 import { financeData } from "@/data/mockData";
+import { useFinanceData } from "@/hooks/useSupabaseData";
 
 const BudgetBreakdown = () => {
+  const { data: supabaseFinance } = useFinanceData();
+  const categories = supabaseFinance?.categories?.length ? supabaseFinance.categories : financeData.categories;
   return (
     <div className="chart-container">
       <h3 className="section-title mb-4">Структура расходов</h3>
