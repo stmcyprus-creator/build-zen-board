@@ -22,7 +22,7 @@ const HrOverview = () => {
       <div className="mb-4 grid grid-cols-3 gap-3">
         <div className="rounded-lg bg-secondary/50 p-3 text-center">
           <Users className="mx-auto mb-1 h-4 w-4 text-info" />
-          <p className="font-mono text-lg font-bold">{hrData.total}</p>
+          <p className="font-mono text-lg font-bold">{total}</p>
           <p className="text-[10px] text-muted-foreground">Всего</p>
         </div>
         <div className="rounded-lg bg-secondary/50 p-3 text-center">
