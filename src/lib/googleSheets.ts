@@ -33,22 +33,23 @@ export interface SheetsData {
 
 async function fetchProrab(): Promise<ProrabRow[]> {
   const { data, error } = await supabase
-    .from('prorab_reports')
+    .from('work_logs')
     .select('*')
-    .order('report_date', { ascending: false });
+    .order('log_date', { ascending: false })
+    .limit(50);
 
   if (error) throw new Error(error.message);
 
   return (data ?? []).map((r) => ({
-    date: r.report_date,
+    date: r.log_date,
     section: r.section ?? '',
-    floor: r.floor ?? '',
-    workType: r.work_type ?? '',
-    description: r.description ?? '',
-    progress: r.progress ?? 0,
-    executor: r.executor ?? '',
-    workerCount: r.worker_count ?? 0,
-    issues: r.issues ?? '',
+    floor: r.section ?? '',
+    workType: r.work_description ?? '',
+    description: r.work_description ?? '',
+    progress: r.quantity ?? 0,
+    executor: '',
+    workerCount: 0,
+    issues: '',
     notes: r.notes ?? '',
   }));
 }
