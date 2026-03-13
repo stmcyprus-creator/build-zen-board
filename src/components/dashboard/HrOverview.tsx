@@ -39,7 +39,7 @@ const HrOverview = () => {
 
       <p className="section-title mb-2">Посещаемость за неделю</p>
       <ResponsiveContainer width="100%" height={140}>
-        <BarChart data={hrData.attendance} barCategoryGap="15%">
+        <BarChart data={attendance} barCategoryGap="15%">
           <XAxis
             dataKey="day"
             tick={{ fill: "hsl(220 10% 55%)", fontSize: 11 }}
