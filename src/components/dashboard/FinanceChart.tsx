@@ -9,15 +9,18 @@ import {
   Legend,
 } from "recharts";
 import { financeData } from "@/data/mockData";
+import { useFinanceData } from "@/hooks/useSupabaseData";
 
 const FinanceChart = () => {
+  const { data: supabaseFinance } = useFinanceData();
+  const chartData = supabaseFinance?.monthly?.length ? supabaseFinance.monthly : financeData.monthly;
   return (
     <div className="chart-container">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="section-title">Бюджет: план / факт (тыс. ₽)</h3>
       </div>
       <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={financeData.monthly} barCategoryGap="20%">
+        <BarChart data={chartData} barCategoryGap="20%">
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
           <XAxis
             dataKey="month"
