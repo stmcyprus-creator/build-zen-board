@@ -20,7 +20,7 @@ const FinanceChart = () => {
         <h3 className="section-title">Бюджет: план / факт (тыс. ₽)</h3>
       </div>
       <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={financeData.monthly} barCategoryGap="20%">
+        <BarChart data={chartData} barCategoryGap="20%">
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
           <XAxis
             dataKey="month"
