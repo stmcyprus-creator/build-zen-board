@@ -1,11 +1,14 @@
 import { financeData } from "@/data/mockData";
+import { useFinanceData } from "@/hooks/useSupabaseData";
 
 const BudgetBreakdown = () => {
+  const { data: supabaseFinance } = useFinanceData();
+  const categories = supabaseFinance?.categories?.length ? supabaseFinance.categories : financeData.categories;
   return (
     <div className="chart-container">
       <h3 className="section-title mb-4">Структура расходов</h3>
       <div className="space-y-3">
-        {financeData.categories.map((cat) => (
+        {categories.map((cat, idx) => (
           <div key={cat.name}>
             <div className="flex items-center justify-between text-sm">
               <span>{cat.name}</span>
@@ -19,7 +22,7 @@ const BudgetBreakdown = () => {
                   className="h-full rounded-full transition-all duration-500"
                   style={{
                     width: `${cat.percent}%`,
-                    background: `hsl(38 92% ${50 - (financeData.categories.indexOf(cat) * 8)}%)`,
+                    background: `hsl(38 92% ${50 - (idx * 8)}%)`,
                   }}
                 />
               </div>
