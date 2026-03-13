@@ -8,7 +8,7 @@ const BudgetBreakdown = () => {
     <div className="chart-container">
       <h3 className="section-title mb-4">Структура расходов</h3>
       <div className="space-y-3">
-        {financeData.categories.map((cat) => (
+        {categories.map((cat, idx) => (
           <div key={cat.name}>
             <div className="flex items-center justify-between text-sm">
               <span>{cat.name}</span>
