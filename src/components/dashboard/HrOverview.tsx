@@ -27,7 +27,7 @@ const HrOverview = () => {
         </div>
         <div className="rounded-lg bg-secondary/50 p-3 text-center">
           <UserCheck className="mx-auto mb-1 h-4 w-4 text-success" />
-          <p className="font-mono text-lg font-bold">{hrData.onSite}</p>
+          <p className="font-mono text-lg font-bold">{onSite}</p>
           <p className="text-[10px] text-muted-foreground">На объекте</p>
         </div>
         <div className="rounded-lg bg-secondary/50 p-3 text-center">
