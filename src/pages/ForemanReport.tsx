@@ -71,18 +71,12 @@ const ForemanReport = () => {
     setSaving(true);
     setError(null);
 
-    const { error: dbError } = await supabase.from("prorab_reports").insert({
-      report_date: form.report_date,
+    const { error: dbError } = await supabase.from("work_logs").insert({
+      log_date: form.report_date,
       section: form.section,
-      floor: form.floor,
-      work_type: form.work_type,
-      description: form.description,
-      progress: parseFloat(form.progress),
-      executor: form.executor,
-      worker_count: parseInt(form.worker_count) || 0,
-      issues: form.issues,
+      work_description: form.work_type + (form.description ? `: ${form.description}` : ''),
+      quantity: parseFloat(form.progress) || 0,
       notes: form.notes,
-      source: "web",
     });
 
     setSaving(false);
