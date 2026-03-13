@@ -9,8 +9,11 @@ import {
   Legend,
 } from "recharts";
 import { financeData } from "@/data/mockData";
+import { useFinanceData } from "@/hooks/useSupabaseData";
 
 const FinanceChart = () => {
+  const { data: supabaseFinance } = useFinanceData();
+  const chartData = supabaseFinance?.monthly?.length ? supabaseFinance.monthly : financeData.monthly;
   return (
     <div className="chart-container">
       <div className="mb-4 flex items-center justify-between">
