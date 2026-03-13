@@ -22,7 +22,7 @@ const BudgetBreakdown = () => {
                   className="h-full rounded-full transition-all duration-500"
                   style={{
                     width: `${cat.percent}%`,
-                    background: `hsl(38 92% ${50 - (financeData.categories.indexOf(cat) * 8)}%)`,
+                    background: `hsl(38 92% ${50 - (idx * 8)}%)`,
                   }}
                 />
               </div>
