@@ -8,8 +8,13 @@ import {
 } from "recharts";
 import { hrData } from "@/data/mockData";
 import { Users, UserCheck, TrendingDown } from "lucide-react";
+import { useHrData } from "@/hooks/useSupabaseData";
 
 const HrOverview = () => {
+  const { data: supabaseHr } = useHrData();
+  const total = supabaseHr?.total ?? hrData.total;
+  const onSite = supabaseHr?.onSite ?? hrData.onSite;
+  const attendance = supabaseHr?.attendance?.length ? supabaseHr.attendance : hrData.attendance;
   return (
     <div className="chart-container">
       <h3 className="section-title mb-4">Персонал</h3>
