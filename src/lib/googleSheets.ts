@@ -56,14 +56,15 @@ async function fetchProrab(): Promise<ProrabRow[]> {
 
 async function fetchSupply(): Promise<SupplyRow[]> {
   const { data, error } = await supabase
-    .from('supply_deliveries')
+    .from('deliveries')
     .select('*')
-    .order('delivery_date', { ascending: false });
+    .order('delivery_date', { ascending: false })
+    .limit(50);
 
   if (error) throw new Error(error.message);
 
   return (data ?? []).map((r) => ({
-    date: r.delivery_date,
+    date: r.delivery_date ?? '',
     time: r.delivery_time ?? '',
     plateNumber: r.plate_number ?? '',
     material: r.material ?? '',

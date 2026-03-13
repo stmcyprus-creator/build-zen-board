@@ -71,7 +71,7 @@ const ForemanReport = () => {
     setSaving(true);
     setError(null);
 
-    const { error: dbError } = await supabase.from("prorab_reports").insert({
+    const { error: dbError } = await supabase.from("work_logs").insert({
       report_date: form.report_date,
       section: form.section,
       floor: form.floor,
