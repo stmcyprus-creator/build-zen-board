@@ -72,11 +72,17 @@ const ForemanReport = () => {
     setError(null);
 
     const { error: dbError } = await supabase.from("work_logs").insert({
-      log_date: form.report_date,
-      section: form.section,
+      project_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+      foreman_id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+      log_date: form.report_date || new Date().toISOString().split('T')[0],
       work_description: form.work_type + (form.description ? `: ${form.description}` : ''),
-      quantity: parseFloat(form.progress) || 0,
-      notes: form.notes,
+      source: 'web',
+      section: form.section,
+      floor: form.floor || null,
+      executor: form.executor || null,
+      worker_count: parseInt(form.worker_count) || 0,
+      progress: parseFloat(form.progress) || 0,
+      notes: form.notes || null,
     });
 
     setSaving(false);
