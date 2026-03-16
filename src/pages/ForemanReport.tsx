@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { ArrowLeft, ClipboardList, Calendar, User, MapPin, Layers, AlertTriangle, MessageSquare, Plus, X, CheckCircle2, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ArrowLeft, ClipboardList, Calendar, User, MapPin, Layers, MessageSquare, Plus, X, CheckCircle2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useGoogleSheets } from "@/hooks/useGoogleSheets";
 import { useRole } from "@/contexts/RoleContext";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -49,16 +48,36 @@ const defaultForm: FormData = {
 
 const ForemanReport = () => {
   const navigate = useNavigate();
-  const { data: sheetsData, isLoading, refresh } = useGoogleSheets();
-  const { canAccess, role } = useRole();
+  const { canAccess } = useRole();
 
+  const [rows, setRows] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormData>(defaultForm);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const rows = sheetsData?.prorab ?? [];
+  const fetchRows = useCallback(async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from("work_logs")
+      .select("*")
+      .order("log_date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error("Fetch error:", error);
+    } else {
+      setRows(data ?? []);
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchRows();
+  }, [fetchRows]);
 
   const handleChange = (field: keyof FormData, value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -95,7 +114,7 @@ const ForemanReport = () => {
     setSaved(true);
     setForm(defaultForm);
     setShowForm(false);
-    refresh();
+    await fetchRows();
     setTimeout(() => setSaved(false), 3000);
   };
 
@@ -103,14 +122,11 @@ const ForemanReport = () => {
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-[800px] space-y-6">
 
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {canAccess("/") && (
-              <button
-                onClick={() => navigate("/")}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary/50 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-              >
+              <button onClick={() => navigate("/")}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary/50 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
                 <ArrowLeft className="h-4 w-4" />
               </button>
             )}
@@ -124,20 +140,15 @@ const ForemanReport = () => {
               </div>
             </div>
           </div>
-
-          {/* Кнопка добавить — только для прораба или менеджера */}
           {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
+            <button onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
               <Plus className="h-4 w-4" />
               Добавить отчёт
             </button>
           )}
         </div>
 
-        {/* Успешное сохранение */}
         {saved && (
           <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-400">
             <CheckCircle2 className="h-4 w-4" />
@@ -145,7 +156,6 @@ const ForemanReport = () => {
           </div>
         )}
 
-        {/* Форма добавления */}
         {showForm && (
           <div className="rounded-xl border border-primary/20 bg-card p-5 space-y-4">
             <div className="flex items-center justify-between">
@@ -156,156 +166,86 @@ const ForemanReport = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {/* Дата */}
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Дата</label>
-                <input
-                  type="date"
-                  value={form.report_date}
-                  onChange={(e) => handleChange("report_date", e.target.value)}
-                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                />
+                <input type="date" value={form.report_date} onChange={(e) => handleChange("report_date", e.target.value)}
+                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
               </div>
-
-              {/* Секция */}
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Секция</label>
-                <select
-                  value={form.section}
-                  onChange={(e) => handleChange("section", e.target.value)}
-                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                >
+                <select value={form.section} onChange={(e) => handleChange("section", e.target.value)}
+                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none">
                   {SECTIONS.map((s) => <option key={s} value={s}>Секция {s}</option>)}
                 </select>
               </div>
-
-              {/* Этаж */}
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Этаж / уровень</label>
-                <input
-                  type="text"
-                  placeholder="напр. -1, Фундамент"
-                  value={form.floor}
-                  onChange={(e) => handleChange("floor", e.target.value)}
-                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
-                />
+                <input type="text" placeholder="напр. -1, Фундамент" value={form.floor} onChange={(e) => handleChange("floor", e.target.value)}
+                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
               </div>
-
-              {/* % выполнения */}
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">% выполнения *</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="0–100"
-                  value={form.progress}
-                  onChange={(e) => handleChange("progress", e.target.value)}
-                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
-                />
+                <input type="number" min="0" max="100" placeholder="0–100" value={form.progress} onChange={(e) => handleChange("progress", e.target.value)}
+                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
               </div>
             </div>
 
-            {/* Вид работы */}
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Вид работы *</label>
-              <select
-                value={form.work_type}
-                onChange={(e) => handleChange("work_type", e.target.value)}
-                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-              >
+              <select value={form.work_type} onChange={(e) => handleChange("work_type", e.target.value)}
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none">
                 <option value="">— выберите —</option>
                 {WORK_TYPES.map((w) => <option key={w} value={w}>{w}</option>)}
               </select>
             </div>
 
-            {/* Описание */}
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Описание</label>
-              <input
-                type="text"
-                placeholder="Что конкретно делали"
-                value={form.description}
-                onChange={(e) => handleChange("description", e.target.value)}
-                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
-              />
+              <input type="text" placeholder="Что конкретно делали" value={form.description} onChange={(e) => handleChange("description", e.target.value)}
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {/* Исполнитель */}
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Бригада / исполнитель</label>
-                <input
-                  type="text"
-                  placeholder="Бригада Иванова"
-                  value={form.executor}
-                  onChange={(e) => handleChange("executor", e.target.value)}
-                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
-                />
+                <input type="text" placeholder="Бригада Иванова" value={form.executor} onChange={(e) => handleChange("executor", e.target.value)}
+                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
               </div>
-
-              {/* Количество рабочих */}
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Рабочих на объекте</label>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  value={form.worker_count}
-                  onChange={(e) => handleChange("worker_count", e.target.value)}
-                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
-                />
+                <input type="number" min="0" placeholder="0" value={form.worker_count} onChange={(e) => handleChange("worker_count", e.target.value)}
+                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
               </div>
             </div>
 
-            {/* Замечания */}
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Замечания / проблемы</label>
-              <input
-                type="text"
-                placeholder="Если есть"
-                value={form.issues}
-                onChange={(e) => handleChange("issues", e.target.value)}
-                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
-              />
+              <input type="text" placeholder="Если есть" value={form.issues} onChange={(e) => handleChange("issues", e.target.value)}
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
             </div>
 
-            {/* Примечания */}
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">Примечания</label>
-              <input
-                type="text"
-                placeholder="Дополнительно"
-                value={form.notes}
-                onChange={(e) => handleChange("notes", e.target.value)}
-                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
-              />
+              <input type="text" placeholder="Дополнительно" value={form.notes} onChange={(e) => handleChange("notes", e.target.value)}
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
             </div>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="flex gap-3 pt-1">
-              <button
-                onClick={handleSubmit}
-                disabled={saving}
-                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-              >
+              <button onClick={handleSubmit} disabled={saving}
+                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                 {saving ? "Сохранение..." : "Сохранить отчёт"}
               </button>
-              <button
-                onClick={() => { setShowForm(false); setError(null); }}
-                className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary/50"
-              >
+              <button onClick={() => { setShowForm(false); setError(null); }}
+                className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary/50">
                 Отмена
               </button>
             </div>
           </div>
         )}
 
-        {/* Список отчётов */}
         {isLoading && (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -323,20 +263,19 @@ const ForemanReport = () => {
 
         {rows.length > 0 && (
           <div className="space-y-3">
-            {rows.map((row, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/20"
-              >
+            {rows.map((row) => (
+              <div key={row.id} className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/20">
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {row.date}
+                    {row.log_date}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" />
-                    Секция {row.section}
-                  </span>
+                  {row.section && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Секция {row.section}
+                    </span>
+                  )}
                   {row.floor && (
                     <span className="flex items-center gap-1">
                       <Layers className="h-3.5 w-3.5" />
@@ -348,28 +287,15 @@ const ForemanReport = () => {
                     {row.executor || "—"}
                   </span>
                   <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                    {row.progress}%
+                    {row.progress ?? 0}%
                   </span>
                 </div>
-
                 <div className="mt-2">
-                  <p className="text-sm font-medium text-foreground">{row.workType}</p>
-                  {row.description && (
-                    <p className="mt-1 text-sm text-muted-foreground">{row.description}</p>
-                  )}
+                  <p className="text-sm font-medium text-foreground">{row.work_description}</p>
                 </div>
-
                 <div className="mt-3 flex flex-wrap gap-3 text-xs">
-                  {row.workerCount > 0 && (
-                    <span className="text-muted-foreground">
-                      👷 {row.workerCount} чел.
-                    </span>
-                  )}
-                  {row.issues && (
-                    <span className="flex items-center gap-1 text-destructive">
-                      <AlertTriangle className="h-3 w-3" />
-                      {row.issues}
-                    </span>
+                  {row.worker_count > 0 && (
+                    <span className="text-muted-foreground">👷 {row.worker_count} чел.</span>
                   )}
                   {row.notes && (
                     <span className="flex items-center gap-1 text-muted-foreground">
