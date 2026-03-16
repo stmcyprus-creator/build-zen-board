@@ -8,7 +8,7 @@ export function useGoogleSheets() {
   const query = useQuery<SheetsData>({
     queryKey: ["google-sheets"],
     queryFn: fetchSheetsData,
-    staleTime: Infinity, // manual refresh only
+    staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: false,
   });
 
