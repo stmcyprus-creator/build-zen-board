@@ -35,9 +35,10 @@ async function fetchProrab(): Promise<ProrabRow[]> {
   const { data, error } = await supabase
     .from('work_logs')
     .select('*')
-    .order('log_date', { ascending: false })
     .order('created_at', { ascending: false })
-    .limit(50);
+    .limit(100);
+
+  console.log('Fetched work_logs:', data?.length, data);
 
   if (error) throw new Error(error.message);
 
