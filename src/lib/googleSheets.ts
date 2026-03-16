@@ -36,6 +36,7 @@ async function fetchProrab(): Promise<ProrabRow[]> {
     .from('work_logs')
     .select('*')
     .order('log_date', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(50);
 
   if (error) throw new Error(error.message);
@@ -43,12 +44,12 @@ async function fetchProrab(): Promise<ProrabRow[]> {
   return (data ?? []).map((r) => ({
     date: r.log_date,
     section: r.section ?? '',
-    floor: r.section ?? '',
+    floor: r.floor ?? '',
     workType: r.work_description ?? '',
-    description: r.work_description ?? '',
-    progress: r.quantity ?? 0,
-    executor: '',
-    workerCount: 0,
+    description: '',
+    progress: r.progress ?? 0,
+    executor: r.executor ?? '',
+    workerCount: r.worker_count ?? 0,
     issues: '',
     notes: r.notes ?? '',
   }));
