@@ -11,10 +11,10 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 
 /** Pages each role can access */
 export const ROLE_PAGES: Record<UserRole, string[]> = {
-  director: ["/", "/budget", "/schedule", "/workers", "/progress", "/materials", "/safety", "/foreman"],
-  project_manager: ["/", "/budget", "/schedule", "/workers", "/progress", "/materials", "/safety", "/foreman"],
-  foreman: ["/foreman"],
-  supply: ["/materials"],
+  director: ["/", "/budget", "/schedule", "/workers", "/progress", "/materials", "/safety", "/foreman", "/tasks"],
+  project_manager: ["/", "/budget", "/schedule", "/workers", "/progress", "/materials", "/safety", "/foreman", "/tasks"],
+  foreman: ["/foreman", "/tasks"],
+  supply: ["/materials", "/tasks"],
 };
 
 interface RoleContextType {
