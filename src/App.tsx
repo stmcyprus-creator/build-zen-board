@@ -13,6 +13,7 @@ import ProgressReport from "./pages/ProgressReport";
 import MaterialsReport from "./pages/MaterialsReport";
 import SafetyReport from "./pages/SafetyReport";
 import ForemanReport from "./pages/ForemanReport";
+import Tasks from "./pages/Tasks";
 
 const queryClient = new QueryClient();
 
